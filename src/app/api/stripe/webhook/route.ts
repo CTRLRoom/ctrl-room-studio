@@ -3,7 +3,6 @@ import { headers } from "next/headers";
 import Stripe from "stripe";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
-import { sendEmail } from "@/lib/email/sendEmail";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2023-10-16" as Stripe.LatestApiVersion,
@@ -49,36 +48,17 @@ export async function POST(request: Request) {
       );
       const engineerData = engineerDoc.data();
 
-      // Send confirmation emails
-      await Promise.all([
-        // Send to client
-        sendEmail({
-          to: bookingData?.clientEmail,
-          subject: "Booking Confirmation - CTRL Room Studios",
-          template: "booking-confirmation",
-          data: {
-            bookingId,
-            date: bookingData?.date,
-            time: bookingData?.startTime,
-            duration: bookingData?.duration,
-            engineer: engineerData?.name,
-            amount: paymentIntent.amount / 100,
-          },
-        }),
-        // Send to engineer
-        sendEmail({
-          to: engineerData?.email,
-          subject: "New Booking Notification - CTRL Room Studios",
-          template: "booking-notification-engineer",
-          data: {
-            bookingId,
-            date: bookingData?.date,
-            time: bookingData?.startTime,
-            duration: bookingData?.duration,
-            client: bookingData?.clientEmail,
-          },
-        }),
-      ]);
+      // Log the confirmation details since we're not sending emails yet
+      console.log("Booking confirmed:", {
+        bookingId,
+        date: bookingData?.date,
+        time: bookingData?.startTime,
+        duration: bookingData?.duration,
+        engineer: engineerData?.name,
+        amount: paymentIntent.amount / 100,
+        clientEmail: bookingData?.clientEmail,
+        engineerEmail: engineerData?.email,
+      });
     }
 
     return NextResponse.json({ received: true });
