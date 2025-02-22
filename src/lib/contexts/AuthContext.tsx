@@ -33,6 +33,8 @@ const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
 });
 
+export { AuthContext };
+
 export function useAuth() {
   return useContext(AuthContext);
 }
